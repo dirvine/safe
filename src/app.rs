@@ -3,7 +3,7 @@ use eframe::{egui, epi};
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))] // if we add new fields, give them default values when deserializing old state
-pub struct TemplateApp {
+pub struct SafeApp {
     // Example stuff:
     label: String,
 
@@ -12,7 +12,7 @@ pub struct TemplateApp {
     value: f32,
 }
 
-impl Default for TemplateApp {
+impl Default for SafeApp {
     fn default() -> Self {
         Self {
             // Example stuff:
@@ -22,9 +22,9 @@ impl Default for TemplateApp {
     }
 }
 
-impl epi::App for TemplateApp {
+impl epi::App for SafeApp {
     fn name(&self) -> &str {
-        "eframe template"
+        "Safe network toolkit"
     }
 
     /// Called once before the first frame.
@@ -67,6 +67,16 @@ impl epi::App for TemplateApp {
                         frame.quit();
                     }
                 });
+                ui.menu_button("Client", |ui| {
+                    if ui.button("Wallet").clicked() { *label = "Wallet".to_string()}; 
+                    if ui.button("Vdash").clicked() { *label = "Vdash".to_string()}; 
+                    if ui.button("Decorum").clicked() { *label = "Decorum".to_string()}; 
+                });
+                ui.menu_button("Node", |ui| {
+                    if ui.button("Manager").clicked() { *label = "Manager".to_string()}; 
+                    if ui.button("YourNet").clicked() { *label = "YourNet".to_string()}; 
+                    if ui.button("Rewards").clicked() { *label = "Rewards".to_string()}; 
+                });
             });
         });
 
@@ -94,17 +104,31 @@ impl epi::App for TemplateApp {
             });
         });
 
+        egui::SidePanel::right("rhs").show(ctx, |ui| {
+            ui.heading("rhs panel");
+            ui.horizontal(|ui| {
+                ui.add(egui::Label::new("inc"));
+                if ui.button("click me").clicked() {
+                    *value += 1.0;
+                }
+            });
+        });
+
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
 
-            ui.heading("eframe template");
-            ui.hyperlink("https://github.com/emilk/eframe_template");
+            ui.heading(label);
+            ui.separator();
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+            ui.hyperlink("https://safenetworkforum.org");
             ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/master/",
-                "Source code."
+                "https://github.com/dirvine/safe/blob/master/",
+                "This apps source code."
             ));
+        });
             egui::warn_if_debug_build(ui);
         });
+
 
         if false {
             egui::Window::new("Window").show(ctx, |ui| {
@@ -114,5 +138,38 @@ impl epi::App for TemplateApp {
                 ui.label("You would normally chose either panels OR windows.");
             });
         }
+    }
+
+    fn on_exit_event(&mut self) -> bool {
+        true
+    }
+
+    fn on_exit(&mut self) {}
+
+    fn auto_save_interval(&self) -> std::time::Duration {
+        std::time::Duration::from_secs(30)
+    }
+
+    fn max_size_points(&self) -> egui::Vec2 {
+        egui::Vec2::new(1024.0, 2048.0)
+    }
+
+    fn clear_color(&self) -> egui::Rgba {
+        // NOTE: a bright gray makes the shadows of the windows look weird.
+        // We use a bit of transparency so that if the user switches on the
+        // `transparent()` option they get immediate results.
+        egui::Color32::from_rgba_unmultiplied(12, 12, 12, 180).into()
+    }
+
+    fn persist_native_window(&self) -> bool {
+        true
+    }
+
+    fn persist_egui_memory(&self) -> bool {
+        true
+    }
+
+    fn warm_up_enabled(&self) -> bool {
+        false
     }
 }
